@@ -1,0 +1,39 @@
+.flex {
+    display: flex;
+}
+
+.w-full {
+    width: 100%;
+}
+
+.h-full {
+    height: 100%;
+}
+
+.relative {
+    position: relative;
+}
+
+.main {
+    margin-top: 0.3rem;
+    min-height: 94.5vh;
+}
+
+.group-line {
+    display: flex;
+    width: 0.5rem;
+    justify-content: center;
+    align-items: center;
+}
+
+.left {
+    background-color: #fff;
+    width: calc(50% - 4px);
+    padding: 1.25rem 1.25rem 1.25rem 4rem;
+}
+
+.right {
+    background-color: #fff;
+    width: calc(50% - 4px);
+    padding: 1.25rem;
+}

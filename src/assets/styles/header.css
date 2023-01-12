@@ -1,0 +1,41 @@
+.header-box {
+    background: #fff;
+    height: 64px;
+    padding-inline: 4rem;
+    color: rgba(0, 0, 0, 0.88);
+    line-height: 64px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+
+.header-left {
+}
+
+.header-left > .tron-logo {
+    width: 40px;
+}
+
+.header-left > .tron-logo:hover {
+    cursor: pointer;
+}
+
+.header-center {
+    position: absolute;
+    left: 43%;
+    align-items: center;
+}
+
+.header-center > .question-list {
+    margin: 0 1rem;
+}
+
+.header-center > .question-list > button:hover {
+    background-color: #fff;
+}
+
+.header-right {
+}
+
+.header-right > .connect-wallet {
+}
