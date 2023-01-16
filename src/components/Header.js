@@ -136,11 +136,44 @@ const AppHeader = () => {
   useEffect(() => {
     function handleTronLinkAction(res) {
       if (res.data.message && res.data.message.action === "accountsChanged") {
+        console.log(res.data, res.data.message, "accountsChanged");
+        return window.location.reload();
+      }
+      if (res.data.message && res.data.message.action === "setAccount") {
+        console.log(res.data, res.data.message, "setAccount");
+        if (
+          window.tronWeb &&
+          !window.tronLink &&
+          res.data.message.data.address !== currentAccount
+        ) {
+          return window.location.reload();
+        }
+      }
+      if (res.data.message && res.data.message.action === "setNode") {
+        console.log(res.data, res.data.message, "setNode");
+        return window.location.reload();
+      }
+      // disconnectWebsite
+      if (res.data.message && res.data.message.action === "disconnectWeb") {
+        console.log(res.data, res.data.message, "disconnectWeb");
+
+        return window.location.reload();
+      }
+      // connectWebsite
+      if (res.data.message && res.data.message.action === "connectWeb") {
+        console.log(res.data, res.data.message, "connectWeb");
+        return window.location.reload();
       }
     }
     window.addEventListener("message", handleTronLinkAction);
 
     return () => window.removeEventListener("message", handleTronLinkAction);
+  });
+
+  useEffect(() => {
+    if (!connectStatus) {
+      initTronLinkWallet();
+    }
   });
 
   const previousQuestion = () => {
