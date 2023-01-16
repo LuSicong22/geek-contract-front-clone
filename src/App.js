@@ -1,35 +1,27 @@
 import React from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import "./assets/styles/App.css";
 import Question from "./components/Question";
-import Main from "./components/Main";
-import { useSelector } from "react-redux";
+import Layout from "antd/es/layout/layout";
+import AppHeader from "./components/Header";
+import QuestionList from "./components/QuestionList";
 import PageNotFound from "./components/PageNotFound";
 
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <Main />,
-    errorElement: <PageNotFound />,
-    children: [
-      {
-        path: "questions/:questionId",
-        element: <Question />,
-        errorElement: <PageNotFound />,
-      },
-      {
-        path: "*",
-        element: <PageNotFound />,
-      },
-    ],
-  },
-]);
-
 function App() {
-  console.log(
-    "App.js connectStatus=" + useSelector((state) => state.rooter.connectStatus)
+  return (
+    <BrowserRouter basename="geek-contract">
+      <Layout>
+        <AppHeader />
+        <div className="main flex">
+          <Routes>
+            <Route path="/" element={<QuestionList />} />
+            <Route path="/questions/:questionId" element={<Question />} />
+            <Route element={<PageNotFound />} />
+          </Routes>
+        </div>
+      </Layout>
+    </BrowserRouter>
   );
-  return <RouterProvider router={router} />;
 }
 
 export default App;
