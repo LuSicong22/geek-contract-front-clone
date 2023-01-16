@@ -1,7 +1,6 @@
 .question-box {
   border: solid 3px #fff;
   padding: 20px 20px 20px 50px;
-  /* height: 400px; */
 }
 
 .question-box > .code-answer {
