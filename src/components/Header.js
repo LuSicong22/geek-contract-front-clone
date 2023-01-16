@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams, useNavigate, useMatch } from "react-router-dom";
+import { useNavigate, useMatch } from "react-router-dom";
 import { message, Button } from "antd";
 import { LeftOutlined, RightOutlined, MenuOutlined } from "@ant-design/icons";
 import tronLogo from "../assets/images/tron.svg";
@@ -15,11 +15,11 @@ const AppHeader = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const matchQuestion = useMatch("/questions/:questionId");
-  const currentAccount = useSelector((state) => state.rooter.currenAccount);
+  const currentAccount = useSelector((state) => state.rooter.currentAccount);
   const connectStatus = useSelector((state) => state.rooter.connectStatus);
   const currentQuestion = useSelector((state) => state.rooter.currentQuestion);
-  const firstQuestion = useSelector((state) => state.rooter.firstQuestion);
-  const lastQuestion = useSelector((state) => state.rooter.lastQuestion);
+  const firstQuestion = useSelector((state) => state.rooter.firstQuestionId);
+  const lastQuestion = useSelector((state) => state.rooter.lastQuestionId);
 
   const initTronLinkWallet = async () => {
     const initTronWeb = (tronWeb) => {
@@ -74,7 +74,7 @@ const AppHeader = () => {
           } else if (
             window.tronWeb &&
             window.tronWeb.defaultAddress &&
-            window.tronWeb.defaultaddress.base58
+            window.tronWeb.defaultAddress.base58
           ) {
             clearInterval(tmpTimer);
             return resolve(window.tronWeb);
@@ -83,9 +83,9 @@ const AppHeader = () => {
       });
 
       Promise.race([tronLinkPromise, appPromise]).then((tron) => {
-        console.log("initTronLinkWallet promise", tron);
+        console.log("ininitTronLinkWallet promise", tron);
         if (!tron) {
-          message.info("Please install TronLInk");
+          message.info("Please install TronLink");
           console.log("TronLink is not initialized");
           closeConnect();
           return;
@@ -105,7 +105,7 @@ const AppHeader = () => {
           return;
         } else {
           const res = tronLink.request({ method: "tron_requestAccounts" });
-          console.log(`tron_requestAccounts res = ${JSON.stringfy(res)}`);
+          console.log(`tron_requestAccounts res = ${JSON.stringify(res)}`);
           if (!res.code) {
             message.info("Please check your TronLink connection");
             return;
@@ -113,7 +113,7 @@ const AppHeader = () => {
             if (res.code === 200) {
               const tronWeb = tronLink.tronWeb;
               tronWeb && initTronWeb(tronWeb);
-              console.log("get tronWeb from tron_requestAccoutns");
+              console.log("get tronWeb from tron_requestAccounts");
               return;
             }
             if (res.code === 4001) {
@@ -177,7 +177,7 @@ const AppHeader = () => {
   });
 
   const previousQuestion = () => {
-    console.log("previousQuesiton", currentQuestion);
+    console.log("previousQuestion", currentQuestion);
     if (currentQuestion > firstQuestion) {
       const prevId = parseInt(currentQuestion) - 1;
       navigate(`/questions/${prevId}`);
@@ -185,11 +185,10 @@ const AppHeader = () => {
       message.info("it's first question!");
     }
   };
-
   const nextQuestion = () => {
     if (currentQuestion < lastQuestion) {
       const nextId = parseInt(currentQuestion) + 1;
-      navigate(`/question/${nextId}`);
+      navigate(`/questions/${nextId}`);
     } else {
       message.info("it's last question!");
     }
@@ -200,8 +199,8 @@ const AppHeader = () => {
       <div className="flex header-left">
         <img
           src={tronLogo}
-          alt=""
           className="tron-logo"
+          alt=""
           onClick={() => navigate("/")}
         />
       </div>
@@ -212,8 +211,7 @@ const AppHeader = () => {
           </Button>
           <span className="question-list">
             <Button type="text" onClick={() => navigate("/")}>
-              <MenuOutlined />
-              Question List
+              <MenuOutlined /> Question List
             </Button>
           </span>
           <Button onClick={nextQuestion}>
