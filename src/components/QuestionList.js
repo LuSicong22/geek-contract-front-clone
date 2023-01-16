@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
-import { Table, Form, Input, InputNumber, Button, message } from "antd";
+import { Table, message, Input, InputNumber, Button, Form } from "antd";
 import { TrophyFilled, CodeFilled } from "@ant-design/icons";
 import { setQuestionCount } from "../store/rootReducer";
-import { triggerConstant } from "../utils/commonUtils";
 import "../assets/styles/questionList.css";
+import { triggerConstant } from "../utils/commonUtils";
 
 const QuestionList = () => {
   const dispatch = useDispatch();
@@ -14,9 +14,9 @@ const QuestionList = () => {
   const verifierAddr = process.env.REACT_APP_verifier;
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [verifierObj, setVerifierObj] = useState(null);
   const [questionAddress, setQuestionAddress] = useState("");
   const [callValue, setCallValue] = useState(100);
-  const [verifierObj, setVerifierObj] = useState(null);
 
   useEffect(() => {
     const fetchQuestionList = async () => {
@@ -26,13 +26,13 @@ const QuestionList = () => {
         let tmpList = [];
         try {
           let verifier = await tronWeb.contract().at(verifierAddr);
-          setVerifierObj(verifier);
           const questionCountHex = await triggerConstant(
             verifier,
             "getQuestionCount"
           );
           const cnt = parseInt(tronWeb.toDecimal(questionCountHex));
           dispatch(setQuestionCount(cnt));
+          setVerifierObj(verifier);
 
           for (let i = items.length; i < cnt && items.length < cnt; i++) {
             const winner = await triggerConstant(verifier, "winner", i);
@@ -70,6 +70,7 @@ const QuestionList = () => {
         message.info("please input question address!");
         return;
       }
+
       if (!callValue) {
         message.info("please deposit at least one sun for question");
         return;
@@ -100,6 +101,7 @@ const QuestionList = () => {
       title: "Status",
       dataIndex: "winner",
       key: "winner",
+      // width: 10,
       render: (winner) => {
         if (winner && winner !== "410000000000000000000000000000000000000000") {
           return <TrophyFilled style={{ color: "#FFD700" }} />;
@@ -121,11 +123,11 @@ const QuestionList = () => {
     {
       title: "Title",
       key: "title",
-      render: (item) => {
+      render: (item) => (
         <Link className="question-title-a" to={`questions/${item.index}`}>
           {item.title}
-        </Link>;
-      },
+        </Link>
+      ),
     },
   ];
 
@@ -150,7 +152,7 @@ const QuestionList = () => {
                 onChange={(e) => setQuestionAddress(e.target.value)}
                 defaultValue={questionAddress}
                 maxLength={64}
-              ></Input>
+              />
             </Form.Item>
             <Form.Item label="Call Value">
               <InputNumber
