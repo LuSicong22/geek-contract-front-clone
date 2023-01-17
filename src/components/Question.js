@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
+import { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { Spin, Form, Input, InputNumber, Button, message } from "antd";
+import { Spin, Form, Button, Input, InputNumber, message } from "antd";
 import { CodeOutlined } from "@ant-design/icons";
 import "../assets/styles/question.css";
 import { setQuestionCount, setCurrentQuestion } from "../store/rootReducer";
@@ -13,13 +13,13 @@ const Question = () => {
   const { questionId } = useParams();
   const tronObj = useSelector((state) => state.rooter.tronObj);
   const currentAccount = useSelector((state) => state.rooter.currentAccount);
-  const verifierAddr = process.env.REACR_APP_verifier;
+  const verifierAddr = process.env.REACT_APP_verifier;
 
   const [loading, setLoading] = useState(false);
-  const [answerAddress, setAnswerAddress] = useState("");
-  const [callValue, setCallValue] = useState(100);
   const [questionInfo, setQuestionInfo] = useState({});
+  const [answerAddress, setAnswerAddress] = useState("");
   const [verifierObj, setVerifierObj] = useState(null);
+  const [callValue, setCallValue] = useState(100);
 
   useEffect(() => {
     dispatch(setCurrentQuestion(questionId));
@@ -93,6 +93,7 @@ const Question = () => {
             const title = await triggerConstant(questionObj, "title");
             const desc = await triggerConstant(questionObj, "description");
 
+            // fetch question test cases
             let firstTestCase;
             const testCaseCount = await triggerConstant(
               questionObj,
@@ -100,7 +101,7 @@ const Question = () => {
             );
             const tcCnt = parseInt(tronWeb.toDecimal(testCaseCount));
             if (tcCnt < 1) {
-              console.warn(`empty test case of question ${questionId}`);
+              console.warn(`empty test cases of question ${questionId}`);
             } else {
               const tcHex = await triggerConstant(
                 questionObj,
@@ -157,6 +158,87 @@ const Question = () => {
     tronObj && tronObj.tronWeb && fetchQuestionInfo();
   }, [dispatch, questionId, testCaseAbi, tronObj, verifierAddr]);
 
+  const handleVerify = async () => {
+    if (tronObj && tronObj.tronWeb && verifierObj) {
+      if (!answerAddress) {
+        message.info("please input answer address!");
+        return;
+      }
+      if (!callValue) {
+        message.info("please deposit at least one sun for answer verify");
+        return;
+      }
+
+      verifierObj
+        .verify(parseInt(questionId), answerAddress)
+        .send({
+          feeLimit: 100_000_000,
+          callValue: callValue,
+          shouldPollResponse: true,
+        })
+        .then((res) => {
+          console.log("verify response", res);
+          if (res) {
+            message.info("Congratulations, your answer passed all test cases!");
+          } else {
+            message.warning("Your answer verify failed");
+          }
+        });
+    } else {
+      message.info("Please connect TronLink wallet!");
+    }
+  };
+
+  const isWinner = () => {
+    if (questionInfo && questionInfo.winner && questionInfo.winnerPrize) {
+      return questionInfo.winner === currentAccount;
+    } else {
+      return false;
+    }
+  };
+
+  const handleWinnerWithdraw = async () => {
+    if (tronObj && tronObj.tronWeb && verifierObj) {
+      verifierObj
+        .withdrawByWinner(questionId)
+        .send()
+        .then((res) => {
+          if (res) {
+            console.log("txId=", res);
+          }
+        });
+    } else {
+      message.info("Please connect TronLink wallet!");
+    }
+  };
+
+  const isQuestionOwner = () => {
+    if (
+      questionInfo &&
+      questionInfo.winner &&
+      questionInfo.questionOwnerPrize
+    ) {
+      return questionInfo.questionOwner === currentAccount;
+    } else {
+      return false;
+    }
+  };
+
+  const handleQuestionOwnerWithdraw = async () => {
+    if (tronObj && tronObj.tronWeb && verifierObj) {
+      verifierObj
+        .withdrawByQuestionOwner(questionId)
+        .send()
+        .then((res) => {
+          if (res) {
+            console.log("txId=", res);
+          }
+        });
+    } else {
+      message.info("Please connect TronLink wallet!");
+    }
+  };
+
   const questionBox = () => {
     const buildQuestionTitle = () => {
       let t = "";
@@ -204,36 +286,6 @@ const Question = () => {
       return <></>;
     }
   };
-  const handleVerify = async () => {
-    if (tronObj && tronObj.tronWeb && verifierObj) {
-      if (!answerAddress) {
-        message.info("please input answer address!");
-        return;
-      }
-      if (!callValue) {
-        message.info("please deposit at least one sun for answer verify");
-        return;
-      }
-
-      verifierObj
-        .verifiy(parseInt(questionId), answerAddress)
-        .send({
-          feeLimit: 100_000_000,
-          callValue: callValue,
-          shouldPollResponse: true,
-        })
-        .then((res) => {
-          console.log("verify resposne", res);
-          if (res) {
-            message.info("Congratulations, your answer passed all test cases!");
-          } else {
-            message.warning("Your answer verify failed");
-          }
-        });
-    } else {
-      message.info("Please connect TronLink wallet!");
-    }
-  };
 
   return (
     <>
@@ -258,7 +310,7 @@ const Question = () => {
             <Form.Item label="Answer Address">
               <Input
                 className="input"
-                placeHolder="Answer Address"
+                placeholder="Answer Address"
                 onChange={(e) => setAnswerAddress(e.target.value)}
                 defaultValue={answerAddress}
                 maxLength={64}
@@ -278,6 +330,24 @@ const Question = () => {
               <Button type="primary" className="btn" onClick={handleVerify}>
                 Verify
               </Button>
+              {isWinner() && (
+                <Button
+                  type="default"
+                  className="btn"
+                  onClick={handleWinnerWithdraw}
+                >
+                  Winner Withdraw
+                </Button>
+              )}
+              {isQuestionOwner() && (
+                <Button
+                  type="default"
+                  className="btn"
+                  onClick={handleQuestionOwnerWithdraw}
+                >
+                  Question Owner Withdraw
+                </Button>
+              )}
             </Form.Item>
           </Form>
         </div>
